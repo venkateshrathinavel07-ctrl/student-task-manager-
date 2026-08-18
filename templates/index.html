@@ -1,1 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Student Task Manager</title>
+  <meta name="description" content="A modern responsive Student Task Manager UI — easy to connect with Flask." />
 
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#94a3b8;
+      --accent:#6ee7b7;
+      --danger:#ff6b6b;
+      --glass: rgba(255,255,255,0.03);
+      --radius:12px;
+      --max-width:960px;
+      color-scheme: dark;
+      color: #e6eef8;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: linear-gradient(180deg,#071029 0%, #081122 60%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+    }
+
+    .app{
+      width:100%;
+      max-width:var(--max-width);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:var(--radius);
+      box-shadow: 0 6px 30px rgba(2,6,23,0.6);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 1fr;
+    }
+
+    header.app-header{
+      padding:20px 24px;
+      display:flex;
+      gap:16px;
+      align-items:center;
+      border-bottom:1px solid rgba(255,255,255,0.03);
+      background: linear-gradient(90deg, rgba(6,10,20,0.3), rgba(10,16,28,0.05));
+    }
+
+    .brand {
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .logo{
+      width:44px;
+      height:44px;
+      background:linear-gradient(135deg,var(--accent),#60a5fa);
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      color:#04202a;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+    }
+
+    .title {
+      font-size:1.1rem;
+      font-weight:600;
+      line-height:1;
+    }
+
+    .subtitle {
+      font-size:0.85rem;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    main.app-main{
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    form#taskForm{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    .input-wrap{
+      flex:1 1 320px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      background:var(--glass);
+      padding:8px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    input#taskInput{
+      border:0;
+      background:transparent;
+      outline:none;
+      color:inherit;
+      font-size:1rem;
+      padding:8px 6px;
+      width:100%;
+    }
+
+    button.btn{
+      background:linear-gradient(180deg,var(--accent), #3dd9b0);
+      color:#04202a;
+      border:0;
+      padding:10px 14px;
+      border-radius:10px;
+      font-weight:600;
+      cursor:pointer;
+      box-shadow: 0 6px 18px rgba(20,60,90,0.15);
+      transition:transform .12s ease, opacity .12s ease;
+    }
+    button.btn:active{transform:translateY(1px)}
+    button.btn.ghost{
+      background:transparent;
+      border:1px solid rgba(255,255,255,0.04);
+      color:var(--muted);
+      box-shadow:none;
+    }
+
+    .tasks{
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      padding:8px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.02);
+      min-height:120px;
+    }
+
+    ul.task-list{
+      list-style:none;
+      margin:0;
+      padding:8px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    li.task{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px;
+      border-radius:10px;
+      background: rgba(255,255,255,0.01);
+      border:1px solid rgba(255,255,255,0.02);
+    }
+
+    .task .meta{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+
+    .task .text{
+      font-size:0.98rem;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .task .small{
+      color:var(--muted);
+      font-size:0.82rem;
+      margin-top:2px;
+    }
+
+    .task .actions{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    .btn-icon{
+      border:0;
+      background:transparent;
+      color:var(--muted);
+      padding:8px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+    .btn-icon:hover{background:rgba(255,255,255,0.02); color:#fff}
+
+    .completed .text{
+      text-decoration:line-through;
+      opacity:0.7;
+    }
+
+    .empty{
+      color:var(--muted);
+      padding:12px;
+      text-align:center;
+      border-radius:8px;
+    }
+
+    footer.app-footer{
+      padding:12px 20px;
+      border-top:1px solid rgba(255,255,255,0.02);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:0.9rem;
+      color:var(--muted);
+    }
+
+    /* Responsive */
+    @media (max-width:560px){
+      .brand .title{font-size:1rem}
+      .logo{width:40px;height:40px}
+      .input-wrap{flex-basis:100%}
+      .actions{flex-wrap:wrap}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" role="application" aria-labelledby="appTitle">
+    <header class="app-header">
+      <div class="brand" aria-hidden="false">
+        <div class="logo" aria-hidden="true">STM</div>
+        <div>
+          <div id="appTitle" class="title">Student Task Manager</div>
+          <div class="subtitle">Organize assignments, labs and reminders</div>
+        </div>
+      </div>
+
+      <div style="margin-left:auto;color:var(--muted);font-size:0.9rem">
+        <!-- Example area where you might show user/session info -->
+        Demo
+      </div>
+    </header>
+
+    <main class="app-main">
+      <!-- Progressive-enhancement form:
+           - With no JS it will POST to /tasks (Flask can handle POST).
+           - With JS the form submit is intercepted and handled client-side.
+           To integrate with Flask: set form action="{{ url_for('add_task') }}" and method="post",
+           and render server tasks below using Jinja.
+      -->
+      <section aria-labelledby="addTaskHeading">
+        <h2 id="addTaskHeading" style="margin:0 0 8px 0;font-size:0.95rem">Add a task</h2>
+
+        <form id="taskForm" action="/tasks" method="post" novalidate>
+          <div class="input-wrap" role="group" aria-label="New task">
+            <label for="taskInput" class="sr-only" style="position:absolute;left:-9999px">Task</label>
+            <input id="taskInput" name="title" type="text" placeholder="E.g. Finish Math lab, due Fri" autocomplete="off" required />
+          </div>
+
+          <button type="submit" class="btn" aria-label="Add task">Add task</button>
+
+          <!-- Optional: a clear button purely client-side -->
+          <button type="button" id="clearAllBtn" class="btn ghost" title="Clear all completed tasks">Clear completed</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="taskListHeading">
+        <h3 id="taskListHeading" style="margin:0;font-size:0.9rem">Tasks</h3>
+        <div class="tasks" aria-live="polite">
+          <ul id="taskList" class="task-list" aria-label="Task list">
+            <!-- Example server-rendered tasks with Jinja2 (Flask) -->
+            <!--
+            {% for task in tasks %}
+              <li class="task{% if task.completed %} completed{% endif %}" data-id="{{ task.id }}">
+                <div class="meta">
+                  <div class="text">{{ task.title }}</div>
+                  <div class="small">Due: {{ task.due_date or '—' }}</div>
+                </div>
+                <div class="actions">
+                  <button class="btn-icon toggle-complete" aria-label="Toggle complete" title="Toggle complete">✓</button>
+                  <button class="btn-icon delete-task" aria-label="Delete task" title="Delete">🗑</button>
+                </div>
+              </li>
+            {% endfor %}
+            -->
+            <!-- Client-side initial empty state -->
+            <li id="emptyState" class="empty">No tasks yet. Add your first task above.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <div>Tip: Click ✓ to mark complete, 🗑 to delete</div>
+      <div id="counts" aria-live="polite">0 tasks</div>
+    </footer>
+  </div>
+
+  <script>
+    // Client-side behavior — progressive enhancement. Keeps DOM and logic simple for Flask integration.
+    (function(){
+      const form = document.getElementById('taskForm');
+      const input = document.getElementById('taskInput');
+      const list = document.getElementById('taskList');
+      const emptyState = document.getElementById('emptyState');
+      const counts = document.getElementById('counts');
+      const clearAllBtn = document.getElementById('clearAllBtn');
+
+      // Simple in-memory ID generator for demo. When integrating with server, use server IDs.
+      let nextId = Date.now();
+
+      // Utility: update counts
+      function updateCounts(){
+        const total = list.querySelectorAll('li.task').length;
+        const completed = list.querySelectorAll('li.task.completed').length;
+        counts.textContent = `${total} task${total!==1 ? 's' : ''} · ${completed} completed`;
+      }
+
+      // Create a task DOM node
+      function createTaskNode({id, title, completed=false, due=null}){
+        const li = document.createElement('li');
+        li.className = 'task' + (completed ? ' completed' : '');
+        li.dataset.id = id;
+
+        li.innerHTML = `
+          <div class="meta">
+            <div class="text"></div>
+            <div class="small"></div>
+          </div>
+          <div class="actions">
+            <button class="btn-icon toggle-complete" aria-label="Toggle complete" title="Toggle complete">✓</button>
+            <button class="btn-icon delete-task" aria-label="Delete task" title="Delete">🗑</button>
+          </div>
+        `;
+        li.querySelector('.text').textContent = title;
+        li.querySelector('.small').textContent = due ? 'Due: ' + due : '';
+        return li;
+      }
+
+      // Add to DOM and optionally send to server
+      function addTask(title, opts = {sendToServer:false}){
+        const trimmed = String(title || '').trim();
+        if(!trimmed) return;
+
+        // remove empty state
+        if(emptyState) { emptyState.remove(); }
+
+        const id = nextId++;
+        const node = createTaskNode({id, title: trimmed});
+        list.appendChild(node);
+        updateCounts();
+
+        // If you want to persist to the server, replace this with a fetch POST to /tasks
+        // Example:
+        // if (opts.sendToServer) {
+        //   fetch('/tasks', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({title: trimmed})})
+        //     .then(r=>r.json()).then(data=> { node.dataset.id = data.id; });
+        // }
+
+        input.value = '';
+        input.focus();
+      }
+
+      // Event: intercept form submit for client-side behavior (progressive enhancement)
+      form.addEventListener('submit', function(e){
+        // If you want pure server-side behaviour, remove/disable this JS.
+        if (e.submitter && e.submitter.getAttribute('formnovalidate') !== null) return;
+        e.preventDefault();
+        addTask(input.value, {sendToServer: false});
+      });
+
+      // Event delegation for Complete/Delete
+      list.addEventListener('click', function(e){
+        const btn = e.target.closest('button');
+        if(!btn) return;
+        const li = btn.closest('li.task');
+        if(!li) return;
+        if(btn.classList.contains('toggle-complete')){
+          li.classList.toggle('completed');
+          // Optionally: send PATCH to server to toggle completed state
+          // fetch(`/tasks/${li.dataset.id}`, {method:'PATCH', body: JSON.stringify({completed: li.classList.contains('completed')})})
+          updateCounts();
+        } else if(btn.classList.contains('delete-task')){
+          li.remove();
+          updateCounts();
+          // Optionally: send DELETE to server
+          // fetch(`/tasks/${li.dataset.id}`, {method:'DELETE'})
+          //   .catch(()=>{/* handle failure */});
+          if(list.querySelectorAll('li.task').length === 0){
+            const empty = document.createElement('li');
+            empty.id = 'emptyState';
+            empty.className = 'empty';
+            empty.textContent = 'No tasks yet. Add your first task above.';
+            list.appendChild(empty);
+          }
+        }
+      });
+
+      // Clear completed tasks
+      clearAllBtn.addEventListener('click', function(){
+        const completed = list.querySelectorAll('li.task.completed');
+        completed.forEach(n => n.remove());
+        updateCounts();
+        if(list.querySelectorAll('li.task').length === 0){
+          const empty = document.createElement('li');
+          empty.id = 'emptyState';
+          empty.className = 'empty';
+          empty.textContent = 'No tasks yet. Add your first task above.';
+          list.appendChild(empty);
+        }
+      });
+
+      // Initialize counts (if server rendered tasks exist)
+      updateCounts();
+
+      // Accessibility helper: allow Enter on input to submit
+      input.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          form.requestSubmit();
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
